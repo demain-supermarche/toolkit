@@ -7,7 +7,7 @@
 
 import requests, csv, sys, argparse
 
-def get_hello_asso_adhesion(id_campagne, helloAsso_user, helloAsso_pass):
+def get_hello_asso_adhesion(id_campagne, hello_asso_user, hello_asso_pass):
 
     results_per_page = 100
     # on prend les adhesions a partir d'une date donnee
@@ -20,7 +20,7 @@ def get_hello_asso_adhesion(id_campagne, helloAsso_user, helloAsso_pass):
     
     
     # Premiere requete pour determinier le nombre de page sur lequel on va boucler
-    r = requests.get(helloAsso_url_adhesions+'&page=1', auth=(helloAsso_user, helloAsso_pass))
+    r = requests.get(helloAsso_url_adhesions+'&page=1', auth=(hello_asso_user, hello_asso_pass))
     if r.status_code != 200:
         print("erreur de requetage. Code de reponse http : "+str(r.status_code))
         sys.exit(2)
@@ -45,7 +45,7 @@ def get_hello_asso_adhesion(id_campagne, helloAsso_user, helloAsso_pass):
         # Sur chaque page, on recupere la liste des adherent qu'on ecrit dans le fichier csv
         while page_courante < nombre_page:
             page_courante += 1
-            r = requests.get(helloAsso_url_adhesions+'&page='+str(page_courante), auth=(helloAsso_user, helloAsso_pass)) 
+            r = requests.get(helloAsso_url_adhesions+'&page='+str(page_courante), auth=(hello_asso_user, hello_asso_pass)) 
             r_json = r.json()
             adherents = r_json.get("resources")
             for adherent in adherents:

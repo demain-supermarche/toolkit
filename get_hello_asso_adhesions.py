@@ -82,7 +82,7 @@ def get_hello_asso_adhesion(id_campagne, hello_asso_user, hello_asso_pass):
     nombre_adherents = 0
     
     # On ouvre un fichier csv
-    with open('adherents.csv', 'w') as csvfile:
+    with open('adherents_hello_asso.csv', 'w') as csvfile:
         csv_writer = csv.writer(csvfile, delimiter='|', quotechar=' ', quoting=csv.QUOTE_MINIMAL)   
         
         # On ecrit la ligne d'entete dans le fichier csv

@@ -38,7 +38,7 @@ def get_hello_asso_adhesion(id_campagne, hello_asso_user, hello_asso_pass):
         csv_writer = csv.writer(csvfile, delimiter='|', quotechar=' ', quoting=csv.QUOTE_MINIMAL)   
         
         # On ecrit la ligne d'entete dans le fichier csv
-        csv_line_header =  ["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Adhesion", "Telephone", "Adresse", "Ville", "Code Postal"]       
+        csv_line_header =  ["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]       
         csv_writer.writerow(csv_line_header)    
         
         # On boucle sur les pages retournees par helloAsso
@@ -55,6 +55,10 @@ def get_hello_asso_adhesion(id_campagne, hello_asso_user, hello_asso_pass):
                 ad_nom = adherent.get("last_name")
                 ad_prenom = adherent.get("first_name")
                 ad_type_adhesion = adherent.get("option_label")
+                
+                ad_id_carte = ad_id.strip('0')
+                ad_id_carte = ad_id_carte[:-1]
+                ad_carte_url = "https://www.helloasso.com/associations/les-amis-de-demain/adhesions/adhesion-a-l-association-les-amis-de-demain/carte-adherent?id="+ad_id_carte
                 
                 ad_date_inscription = adherent.get("date")
                 
@@ -81,10 +85,10 @@ def get_hello_asso_adhesion(id_campagne, hello_asso_user, hello_asso_pass):
                         ad_date_naissance = custom_info.get("value")                      
                 
                 
-                #["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Adhesion", "Telephone", "Adresse", "Ville", "Code Postal"]                           
+                #["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]                           
                 
                 detection_doublon="=NB.SI(E:E;E"+str(nombre_adherents+1)+")"
-                csv_line =  [ad_id, ad_date_inscription, ad_nom, ad_prenom, ad_email,detection_doublon , ad_type_adhesion, ad_tel, ad_adresse, ad_ville, ad_code_postal]       
+                csv_line =  [ad_id, ad_date_inscription, ad_nom, ad_prenom, ad_email,detection_doublon , ad_type_adhesion, ad_tel, ad_adresse, ad_ville, ad_code_postal, ad_carte_url]       
                 # on enleve les fin de ligne qui pourrait se trouver en plein milieu d'une ligne
                 csv_line = [word.strip() for word in csv_line]
                 csv_writer.writerow(csv_line)

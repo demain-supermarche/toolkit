@@ -7,8 +7,8 @@
 
 import requests, csv, sys, argparse
 
-def get_hello_asso_adhesion(id_campagne, hello_asso_user, hello_asso_pass):
 
+def get_hello_asso_url_adhesions(id_campagne):
     results_per_page = 100
     # on prend les adhesions a partir d'une date donnee
     createdFrom = "2017-04-01T00:00:00"
@@ -18,17 +18,65 @@ def get_hello_asso_adhesion(id_campagne, hello_asso_user, hello_asso_pass):
     helloAsso_url_params = "type=SUBSCRIPTION&results_per_page="+str(results_per_page)+"&from="+createdFrom
     helloAsso_url_adhesions = "https://api.helloasso.com/v3/campaigns/"+id_campagne+"/actions.json?"+helloAsso_url_params
     
+    return helloAsso_url_adhesions
+
+def format_adherent(adherent, numero_ad):
+    ad_id = adherent.get("id")
+    ad_nom = adherent.get("last_name")
+    ad_prenom = adherent.get("first_name")
+    ad_type_adhesion = adherent.get("option_label")
+    
+    ad_id_carte = ad_id.strip('0')
+    ad_id_carte = ad_id_carte[:-1]
+    ad_carte_url = "https://www.helloasso.com/associations/les-amis-de-demain/adhesions/adhesion-a-l-association-les-amis-de-demain/carte-adherent?id="+ad_id_carte
+    
+    ad_date_inscription = adherent.get("date")
+    
+    ad_tel = ""
+    ad_adresse = ""
+    ad_ville = ""
+    ad_code_postal = ""
+    ad_date_naissance = ""
+    
+    for custom_info in adherent.get("custom_infos"):
+        label = custom_info.get("label")
+
+        if label == "Email contributeur":
+            ad_email = custom_info.get("value")                    
+        elif label == "Numéro de téléphone":
+            ad_tel = custom_info.get("value")
+        elif label == "Adresse":
+            ad_adresse = custom_info.get("value")
+        elif label == "Code postal":
+            ad_code_postal = custom_info.get("value")
+        elif label == "Localité":
+            ad_ville = custom_info.get("value")    
+        elif label == "Date de naissance":
+            ad_date_naissance = custom_info.get("value")                      
+    
+    
+    #["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]                           
+    
+    detection_doublon="=NB.SI(E:E;E"+str(numero_ad+1)+")"
+    csv_line =  [ad_id, ad_date_inscription, ad_nom, ad_prenom, ad_email,detection_doublon , ad_type_adhesion, ad_tel, ad_adresse, ad_ville, ad_code_postal, ad_carte_url]       
+    # on enleve les fin de ligne qui pourrait se trouver en plein milieu d'une ligne
+    csv_line = [word.strip() for word in csv_line]
+    
+    return csv_line
+        
+
+def get_hello_asso_adhesion(id_campagne, hello_asso_user, hello_asso_pass):
+
+    
+    helloAsso_url_adhesions = get_hello_asso_url_adhesions(id_campagne)
     
     # Premiere requete pour determinier le nombre de page sur lequel on va boucler
     r = requests.get(helloAsso_url_adhesions+'&page=1', auth=(hello_asso_user, hello_asso_pass))
     if r.status_code != 200:
         print("erreur de requetage. Code de reponse http : "+str(r.status_code))
         sys.exit(2)
-              
-    r_json = r.json()
     
-    pagination = r_json.get("pagination")
-    nombre_page = pagination.get("max_page")
+    nombre_page = r.json().get("pagination").get("max_page")
     
     page_courante = 0
     nombre_adherents = 0
@@ -50,47 +98,7 @@ def get_hello_asso_adhesion(id_campagne, hello_asso_user, hello_asso_pass):
             adherents = r_json.get("resources")
             for adherent in adherents:
                 nombre_adherents +=1
-                
-                ad_id = adherent.get("id")
-                ad_nom = adherent.get("last_name")
-                ad_prenom = adherent.get("first_name")
-                ad_type_adhesion = adherent.get("option_label")
-                
-                ad_id_carte = ad_id.strip('0')
-                ad_id_carte = ad_id_carte[:-1]
-                ad_carte_url = "https://www.helloasso.com/associations/les-amis-de-demain/adhesions/adhesion-a-l-association-les-amis-de-demain/carte-adherent?id="+ad_id_carte
-                
-                ad_date_inscription = adherent.get("date")
-                
-                ad_tel = ""
-                ad_adresse = ""
-                ad_ville = ""
-                ad_code_postal = ""
-                ad_date_naissance = ""
-                
-                for custom_info in adherent.get("custom_infos"):
-                    label = custom_info.get("label")
-    
-                    if label == "Email contributeur":
-                        ad_email = custom_info.get("value")                    
-                    elif label == "Numéro de téléphone":
-                        ad_tel = custom_info.get("value")
-                    elif label == "Adresse":
-                        ad_adresse = custom_info.get("value")
-                    elif label == "Code postal":
-                        ad_code_postal = custom_info.get("value")
-                    elif label == "Localité":
-                        ad_ville = custom_info.get("value")    
-                    elif label == "Date de naissance":
-                        ad_date_naissance = custom_info.get("value")                      
-                
-                
-                #["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]                           
-                
-                detection_doublon="=NB.SI(E:E;E"+str(nombre_adherents+1)+")"
-                csv_line =  [ad_id, ad_date_inscription, ad_nom, ad_prenom, ad_email,detection_doublon , ad_type_adhesion, ad_tel, ad_adresse, ad_ville, ad_code_postal, ad_carte_url]       
-                # on enleve les fin de ligne qui pourrait se trouver en plein milieu d'une ligne
-                csv_line = [word.strip() for word in csv_line]
+                csv_line = format_adherent(adherent, nombre_adherents)
                 csv_writer.writerow(csv_line)
             
             print("page " + str(page_courante) + " sur " + str(nombre_page) + " traite")

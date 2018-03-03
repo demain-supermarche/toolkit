@@ -1,123 +1,106 @@
-# getHelloAssoAdhesion.py
+# get_hello_asso_members.py
 # Python3
-# Auteur : Fafadji GNOFAME
-# Date : 25 Fevrier 2018
-# Version : 0.3
-# Description :  recupere l'ensemble des adherents helloAsso et les ecrit dans un fichier csv
+# author : Fafadji GNOFAME
+# Date : 03 mars 2018
+# Version : 1.0
+# Description :  get all helloAsso members and write then in a csv file
 
 import requests, csv, sys, argparse
 
 
-def get_hello_asso_url_adhesions(id_campagne):
+def get_hello_asso_members_url(compaign_id):
     results_per_page = 100
-    # on prend les adhesions a partir d'une date donnee
+    # argument to target members which subscription start from "createdFrom" date
     createdFrom = "2017-04-01T00:00:00"
+        
+    hello_asso_url_params = "type=SUBSCRIPTION&results_per_page="+str(results_per_page)+"&from="+createdFrom
+    hello_asso_url_members = "https://api.helloasso.com/v3/campaigns/"+compaign_id+"/actions.json?"+hello_asso_url_params
     
-    # id de la campagne concerne
-    
-    helloAsso_url_params = "type=SUBSCRIPTION&results_per_page="+str(results_per_page)+"&from="+createdFrom
-    helloAsso_url_adhesions = "https://api.helloasso.com/v3/campaigns/"+id_campagne+"/actions.json?"+helloAsso_url_params
-    
-    return helloAsso_url_adhesions
+    return hello_asso_url_members
 
-def format_adherent(adherent, numero_ad):
-    ad_id = adherent.get("id")
-    ad_nom = adherent.get("last_name")
-    ad_prenom = adherent.get("first_name")
-    ad_type_adhesion = adherent.get("option_label")
+def format_member(member, member_number):
+    m_id, m_name, m_surname = member.get("id"), member.get("last_name"), member.get("first_name")
+    m_subs_type, m_subs_date = member.get("option_label"), member.get("date")
     
-    ad_id_carte = ad_id.strip('0')
-    ad_id_carte = ad_id_carte[:-1]
-    ad_carte_url = "https://www.helloasso.com/associations/les-amis-de-demain/adhesions/adhesion-a-l-association-les-amis-de-demain/carte-adherent?id="+ad_id_carte
+    m_card_id = m_id.strip('0')
+    m_card_id = m_card_id[:-1]
+    m_card_url = "https://www.helloasso.com/associations/les-amis-de-demain/adhesions/adhesion-a-l-association-les-amis-de-demain/carte-adherent?id="+m_card_id
     
-    ad_date_inscription = adherent.get("date")
+    m_phone, m_address, m_city, m_zip_code, m_birthday, m_email = "", "", "", "", "", ""
     
-    ad_tel = ""
-    ad_adresse = ""
-    ad_ville = ""
-    ad_code_postal = ""
-    ad_date_naissance = ""
-    
-    for custom_info in adherent.get("custom_infos"):
+    for custom_info in member.get("custom_infos"):
         label = custom_info.get("label")
 
-        if label == "Email contributeur":
-            ad_email = custom_info.get("value")                    
-        elif label == "Numéro de téléphone":
-            ad_tel = custom_info.get("value")
-        elif label == "Adresse":
-            ad_adresse = custom_info.get("value")
-        elif label == "Code postal":
-            ad_code_postal = custom_info.get("value")
-        elif label == "Localité":
-            ad_ville = custom_info.get("value")    
-        elif label == "Date de naissance":
-            ad_date_naissance = custom_info.get("value")                      
+        if label == "Email contributeur": m_email = custom_info.get("value")                               
+        elif label == "Numéro de téléphone": m_phone = custom_info.get("value")            
+        elif label == "Adresse": m_address = custom_info.get("value")           
+        elif label == "Code postal": m_zip_code = custom_info.get("value")          
+        elif label == "Localité": m_city = custom_info.get("value") 
+        elif label == "Date de naissance": m_birthday = custom_info.get("value")    
+                               
+    duplication = "=NB.SI(E:E;E"+str(member_number+1)+")"
     
-    
-    #["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]                           
-    
-    detection_doublon="=NB.SI(E:E;E"+str(numero_ad+1)+")"
-    csv_line =  [ad_id, ad_date_inscription, ad_nom, ad_prenom, ad_email,detection_doublon , ad_type_adhesion, ad_tel, ad_adresse, ad_ville, ad_code_postal, ad_carte_url]       
-    # on enleve les fin de ligne qui pourrait se trouver en plein milieu d'une ligne
+    #["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Type Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]                            
+    csv_line =  [m_id, m_subs_date, m_name, m_surname, m_email,duplication , m_subs_type, m_phone, m_address, m_city, m_zip_code, m_card_url]       
+    # strip "\n" to prevent undesirable end of line in the csv file
     csv_line = [word.strip() for word in csv_line]
     
     return csv_line
         
 
-def get_hello_asso_adhesion(id_campagne, hello_asso_user, hello_asso_pass):
+def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass):
 
     
-    helloAsso_url_adhesions = get_hello_asso_url_adhesions(id_campagne)
+    hello_asso_members_url = get_hello_asso_members_url(compaign_id)
     
-    # Premiere requete pour determinier le nombre de page sur lequel on va boucler
-    r = requests.get(helloAsso_url_adhesions+'&page=1', auth=(hello_asso_user, hello_asso_pass))
+    # First request to retrieve the number of page on witch we will loop
+    r = requests.get(hello_asso_members_url+'&page=1', auth=(hello_asso_user, hello_asso_pass))
     if r.status_code != 200:
-        print("erreur de requetage. Code de reponse http : "+str(r.status_code))
+        print("[ERROR] Erreur lors de la requete. Code HTTP de la reponse: "+str(r.status_code))
         sys.exit(2)
     
-    nombre_page = r.json().get("pagination").get("max_page")
+    pages_number = r.json().get("pagination").get("max_page")
     
-    page_courante = 0
-    nombre_adherents = 0
+    current_page = 0
+    members_count = 0
     
-    # On ouvre un fichier csv
+    # Opening the csv file
     with open('adherents_hello_asso.csv', 'w') as csvfile:
         csv_writer = csv.writer(csvfile, delimiter='|', quotechar=' ', quoting=csv.QUOTE_MINIMAL)   
         
-        # On ecrit la ligne d'entete dans le fichier csv
-        csv_line_header =  ["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]       
+        # Writting the header's line in the csv file
+        csv_line_header =  ["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Type Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]       
         csv_writer.writerow(csv_line_header)    
         
-        # On boucle sur les pages retournees par helloAsso
-        # Sur chaque page, on recupere la liste des adherent qu'on ecrit dans le fichier csv
-        while page_courante < nombre_page:
-            page_courante += 1
-            r = requests.get(helloAsso_url_adhesions+'&page='+str(page_courante), auth=(hello_asso_user, hello_asso_pass)) 
+        # loop on the pages returned by helloAsso
+        # On every page, retreiving the members list and writing them on the csv file
+        while current_page < pages_number:
+            current_page += 1
+            r = requests.get(hello_asso_members_url+'&page='+str(current_page), auth=(hello_asso_user, hello_asso_pass)) 
             r_json = r.json()
-            adherents = r_json.get("resources")
-            for adherent in adherents:
-                nombre_adherents +=1
-                csv_line = format_adherent(adherent, nombre_adherents)
+            members = r_json.get("resources")
+            for member in members:
+                members_count +=1
+                csv_line = format_member(member, members_count)
                 csv_writer.writerow(csv_line)
             
-            print("page " + str(page_courante) + " sur " + str(nombre_page) + " traite")
+            print("[INFO] Page " + str(current_page) + " sur " + str(pages_number) + " traitee")
             
-    print("fin de traitement")
-    print("Nombre adhérents : " + str(nombre_adherents))
+    print("[INFO] Fin Traitement")
+    print("[INFO] Nombre d'adherents: " + str(members_count))
 
 def parse_params(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--campagne', required=True, help='Id de la campagne helloAsso')  
-    parser.add_argument('-u', '--username', required=True, help='Username de API HelloAsso')    
-    parser.add_argument('-p', '--password', required=True, help='Password de API HelloAsso') 
+    parser.add_argument('-c', '--campaign', required=True, help='Id de la campagne helloAsso')  
+    parser.add_argument('-u', '--username', required=True, help='Nom utilisateur de API HelloAsso')    
+    parser.add_argument('-p', '--password', required=True, help='Mot de passe de API HelloAsso') 
     
     return parser.parse_args(argv)
     
 
 def main(argv):
     args = parse_params(argv)
-    get_hello_asso_adhesion(args.campagne , args.username, args.password) 
+    get_hello_asso_members(args.campaign , args.username, args.password) 
 
 if __name__ == "__main__":
     main(sys.argv[1:])

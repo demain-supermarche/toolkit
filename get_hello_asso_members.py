@@ -48,6 +48,7 @@ def format_member(member, member_number):
 
 def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass, created_from = ""):
     
+    print("[INFO] Debut Traitement")    
     print("[INFO] Recuperation de la liste des adherents")
     print("[INFO]    ID de la campagne : "+str(compaign_id))
     
@@ -96,6 +97,8 @@ def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass, create
             print("[INFO] Page " + str(current_page) + " sur " + str(pages_number) + " traitee")
             
     print("[INFO] Nombre d'adherents: " + str(members_count))
+    print("[INFO] Fin Traitement")
+    
     
 
 def parse_params(argv):
@@ -110,10 +113,8 @@ def parse_params(argv):
     
 
 def main(argv):
-    print("[INFO] Debut Traitement")
     args = parse_params(argv)
     get_hello_asso_members(args.campaign , args.username, args.password, args.start_date)
-    print("[INFO] Fin Traitement")
 
 if __name__ == "__main__":
     main(sys.argv[1:])

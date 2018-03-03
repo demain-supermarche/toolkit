@@ -10,7 +10,7 @@ import ssl, pprint, csv, argparse, sys
 
 
 def get_odoo_members(odoo_username, odoo_password, url, db):
-
+    print("[INFO] Debut Traitement")
     print("[INFO] Recuperation de la liste des adherents")
     print("[INFO]    URL odoo : " + url)
     print("[INFO]    Base de donnee odoo : " + db)
@@ -36,6 +36,7 @@ def get_odoo_members(odoo_username, odoo_password, url, db):
             csv_writer.writerows(members)
     
     print("[INFO] Nombre d'adherents: " + str(members_count))
+    print("[INFO] Fin Traitement")
 
 def parse_params(argv):
     parser = argparse.ArgumentParser()
@@ -47,10 +48,8 @@ def parse_params(argv):
     return parser.parse_args(argv)    
 
 def main(argv):
-    print("[INFO] Debut Traitement")
     args = parse_params(argv)
     get_odoo_members(args.username, args.password, args.url, args.database) 
-    print("[INFO] Fin Traitement")
 
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -111,10 +111,8 @@ def parse_params(argv):
 
 def main(argv):
     print("[INFO] Debut Traitement")
-    
     args = parse_params(argv)
     get_hello_asso_members(args.campaign , args.username, args.password, args.start_date)
-    
     print("[INFO] Fin Traitement")
 
 if __name__ == "__main__":

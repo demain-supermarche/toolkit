@@ -8,12 +8,10 @@
 import requests, csv, sys, argparse
 
 
-def get_hello_asso_members_url(compaign_id):
+def get_hello_asso_members_url(compaign_id, created_from):
     results_per_page = 100
-    # argument to target members which subscription start from "createdFrom" date
-    createdFrom = "2017-04-01T00:00:00"
         
-    hello_asso_url_params = "type=SUBSCRIPTION&results_per_page="+str(results_per_page)+"&from="+createdFrom
+    hello_asso_url_params = "type=SUBSCRIPTION&results_per_page="+str(results_per_page)+"&from="+created_from
     hello_asso_url_members = "https://api.helloasso.com/v3/campaigns/"+compaign_id+"/actions.json?"+hello_asso_url_params
     
     return hello_asso_url_members
@@ -48,10 +46,21 @@ def format_member(member, member_number):
     return csv_line
         
 
-def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass):
-
+def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass, created_from = ""):
     
-    hello_asso_members_url = get_hello_asso_members_url(compaign_id)
+    print("[INFO] Recuperation de la liste des adherents")
+    print("[INFO]    ID de la campagne : "+str(compaign_id))
+    
+    print_date_debut = "[INFO]    Date debut : " 
+    
+    if created_from == "":
+        print_date_debut +="Debut de la campagne"
+    else:
+        print_date_debut +=created_from
+    
+    print(print_date_debut)
+    
+    hello_asso_members_url = get_hello_asso_members_url(compaign_id, created_from)
     
     # First request to retrieve the number of page on witch we will loop
     r = requests.get(hello_asso_members_url+'&page=1', auth=(hello_asso_user, hello_asso_pass))
@@ -86,12 +95,14 @@ def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass):
             
             print("[INFO] Page " + str(current_page) + " sur " + str(pages_number) + " traitee")
             
-    print("[INFO] Fin Traitement")
     print("[INFO] Nombre d'adherents: " + str(members_count))
+    
 
 def parse_params(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--campaign', required=True, help='Id de la campagne helloAsso')  
+    parser.add_argument('-c', '--campaign', required=True, help='Id de la campagne helloAsso') 
+    parser.add_argument('-s', '--start_date', required=False, default="", 
+        help='Date de debut a partir de laquelle recuperer les adhesions. Si non renseigne, correspond a la date de debut de la campagne. Exemple de date : -s "2017-04-01T00:00:00"')  
     parser.add_argument('-u', '--username', required=True, help='Nom utilisateur de API HelloAsso')    
     parser.add_argument('-p', '--password', required=True, help='Mot de passe de API HelloAsso') 
     
@@ -99,8 +110,12 @@ def parse_params(argv):
     
 
 def main(argv):
+    print("[INFO] Debut Traitement")
+    
     args = parse_params(argv)
-    get_hello_asso_members(args.campaign , args.username, args.password) 
+    get_hello_asso_members(args.campaign , args.username, args.password, args.start_date)
+    
+    print("[INFO] Fin Traitement")
 
 if __name__ == "__main__":
     main(sys.argv[1:])

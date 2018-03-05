@@ -18,7 +18,7 @@ def get_hello_asso_members_url(compaign_id, created_from):
 
 def format_member(member, member_number):
     m_id, m_name, m_surname = member.get("id"), member.get("last_name"), member.get("first_name")
-    m_subs_type, m_subs_date = member.get("option_label"), member.get("date")
+    m_subs_type, m_subs_date, m_subs_amout = member.get("option_label"), member.get("date"), str(member.get("amount"))
     
     m_card_id = m_id.strip('0')
     m_card_id = m_card_id[:-1]
@@ -38,8 +38,8 @@ def format_member(member, member_number):
                                
     duplication = "=NB.SI(E:E;E"+str(member_number+1)+")"
     
-    #["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Type Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]                            
-    csv_line =  [m_id, m_subs_date, m_name, m_surname, m_email,duplication , m_subs_type, m_phone, m_address, m_city, m_zip_code, m_card_url]       
+    #["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Type Adhesion", "Montant Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]                            
+    csv_line =  [m_id, m_subs_date, m_name, m_surname, m_email,duplication , m_subs_type, m_subs_amout, m_phone, m_address, m_city, m_zip_code, m_card_url]       
     # strip "\n" to prevent undesirable end of line in the csv file
     csv_line = [word.strip() for word in csv_line]
     
@@ -79,7 +79,7 @@ def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass, create
         csv_writer = csv.writer(csvfile, delimiter='|', quotechar=' ', quoting=csv.QUOTE_MINIMAL)   
         
         # Writting the header's line in the csv file
-        csv_line_header =  ["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Type Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]       
+        csv_line_header =  ["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Type Adhesion", "Montant Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]       
         csv_writer.writerow(csv_line_header)    
         
         # loop on the pages returned by helloAsso

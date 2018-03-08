@@ -5,7 +5,8 @@
 # Version : 1.0
 # Description :  get all helloAsso members and write then in a csv file
 
-import requests, csv, sys, argparse
+import requests, csv, sys, argparse, configparser
+from members_keys import MembersKeys
 
 
 def get_hello_asso_members_url(compaign_id, created_from):
@@ -35,18 +36,16 @@ def format_member(member, member_number):
         elif label == "Code postal": m_zip_code = custom_info.get("value")          
         elif label == "Localité": m_city = custom_info.get("value") 
         elif label == "Date de naissance": m_birthday = custom_info.get("value")    
-                               
-    duplication = "=NB.SI(E:E;E"+str(member_number+1)+")"
     
-    #["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Type Adhesion", "Montant Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]                            
-    csv_line =  [m_id, m_subs_date, m_name, m_surname, m_email,duplication , m_subs_type, m_subs_amout, m_phone, m_address, m_city, m_zip_code, m_card_url]       
+    #["id", "Date Adhesion" , "Nom", "Prenom", "email", "Type Adhesion", "Montant Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]                            
+    csv_line =  [m_id, m_subs_date, m_name, m_surname, m_email , m_subs_type, m_subs_amout, m_phone, m_address, m_city, m_zip_code, m_card_url]       
     # strip "\n" to prevent undesirable end of line in the csv file
     csv_line = [word.strip() for word in csv_line]
     
     return csv_line
         
 
-def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass, created_from = ""):
+def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass, config, created_from = ""):
     
     print("[INFO] Debut Traitement")    
     print("[INFO] Recuperation de la liste des adherents")
@@ -76,10 +75,13 @@ def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass, create
     
     # Opening the csv file
     with open('adherents_hello_asso.csv', 'w') as csvfile:
-        csv_writer = csv.writer(csvfile, delimiter='|', quotechar=' ', quoting=csv.QUOTE_MINIMAL)   
+        csv_writer = csv.writer(csvfile, delimiter='|', quotechar='"', quoting=csv.QUOTE_MINIMAL)   
+        
+        m_keys = MembersKeys(config)
         
         # Writting the header's line in the csv file
-        csv_line_header =  ["id", "Date Adhesion" , "Nom", "Prenom", "email", "detection doublon" ,  "Type Adhesion", "Montant Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]       
+        csv_line_header =  [m_keys.id, m_keys.subs_date , m_keys.name, m_keys.surname, m_keys.email ,  m_keys.subs_type, 
+                            m_keys.subs_amount, m_keys.phone, m_keys.address, m_keys.city, m_keys.zip, m_keys.subs_card_url]       
         csv_writer.writerow(csv_line_header)    
         
         # loop on the pages returned by helloAsso
@@ -108,13 +110,20 @@ def parse_params(argv):
         help='Date de debut a partir de laquelle recuperer les adhesions. Si non renseigne, correspond a la date de debut de la campagne. Exemple de date : -s "2017-04-01T00:00:00"')  
     parser.add_argument('-u', '--username', required=True, help='Nom utilisateur de API HelloAsso')    
     parser.add_argument('-p', '--password', required=True, help='Mot de passe de API HelloAsso') 
+    parser.add_argument('-mc', '--m_k_config_file', required=True, 
+                        help="Chemin vers le fichier de configuration des clef d'identification d'un membre")      
     
     return parser.parse_args(argv)
     
 
 def main(argv):
     args = parse_params(argv)
-    get_hello_asso_members(args.campaign , args.username, args.password, args.start_date)
+    
+    m_k_config_file = args.m_k_config_file
+    config = configparser.ConfigParser()
+    config.read(m_k_config_file)
+    
+    get_hello_asso_members(args.campaign , args.username, args.password, config, args.start_date)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

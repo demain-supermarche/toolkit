@@ -5,8 +5,9 @@
 # Version : 1.0
 # Description :  get all helloAsso members and write then in a csv file
 
-import requests, csv, sys, argparse, configparser
+import requests, csv, sys, argparse, configparser, os, errno
 from members_keys import MembersKeys
+from functions import *
 
 
 def get_hello_asso_members_url(compaign_id, created_from):
@@ -45,7 +46,7 @@ def format_member(member, member_number):
     return csv_line
         
 
-def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass, config, created_from = ""):
+def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass, output_file , config, created_from = ""):
     
     print("[INFO] Debut Traitement")    
     print("[INFO] Recuperation de la liste des adherents")
@@ -73,8 +74,10 @@ def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass, config
     current_page = 0
     members_count = 0
     
+
+    create_path_n_file_if_needed(output_file)
     # Opening the csv file
-    with open('adherents_hello_asso.csv', 'w') as csvfile:
+    with open(output_file, 'w') as csvfile:
         csv_writer = csv.writer(csvfile, delimiter='|', quotechar='"', quoting=csv.QUOTE_MINIMAL)   
         
         m_keys = MembersKeys(config)
@@ -110,8 +113,10 @@ def parse_params(argv):
         help='Date de debut a partir de laquelle recuperer les adhesions. Si non renseigne, correspond a la date de debut de la campagne. Exemple de date : -s "2017-04-01T00:00:00"')  
     parser.add_argument('-u', '--username', required=True, help='Nom utilisateur de API HelloAsso')    
     parser.add_argument('-p', '--password', required=True, help='Mot de passe de API HelloAsso') 
-    parser.add_argument('-mc', '--m_k_config_file', required=True, 
-                        help="Chemin vers le fichier de configuration des clef d'identification d'un membre")      
+    parser.add_argument('-mc', '--m_k_config_file', required=False, default="param.conf",
+                        help="Chemin vers le fichier de configuration des clef d'identification d'un membre")
+    parser.add_argument('-o', '--output_file', required=False, default="csv/adherents_hello_asso.csv",
+                        help="Chemin vers le fichier de sortie")     
     
     return parser.parse_args(argv)
     
@@ -123,7 +128,7 @@ def main(argv):
     config = configparser.ConfigParser()
     config.read(m_k_config_file)
     
-    get_hello_asso_members(args.campaign , args.username, args.password, config, args.start_date)
+    get_hello_asso_members(args.campaign , args.username, args.password, args.output_file, config, args.start_date)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -102,6 +102,7 @@ def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass, output
             print("[INFO] Page " + str(current_page) + " sur " + str(pages_number) + " traitee")
             
     print("[INFO] Nombre d'adherents: " + str(members_count))
+    print("[INFO] Fichier de sortie : " + output_file)
     print("[INFO] Fin Traitement")
     
     

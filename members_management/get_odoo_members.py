@@ -29,7 +29,7 @@ def get_odoo_members(odoo_username, odoo_password, url, db, output_file):
     
     if members_count > 0:
         create_path_n_file_if_needed(output_file)
-        with open('adherents_odoo.csv', 'w') as csvfile:
+        with open(output_file, 'w') as csvfile:
     
             dict_keys = members[0].keys()
     

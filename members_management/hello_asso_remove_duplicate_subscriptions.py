@@ -33,8 +33,8 @@
 
 import requests, csv, sys, argparse, configparser
 from operator import itemgetter
-
 from members_keys import MembersKeys
+from functions import *
 
 def delete_duplicate_entries(args):
     print("[INFO] Debut Traitement") 
@@ -107,6 +107,7 @@ def delete_duplicate_entries(args):
         duplicates_number = members_all - members_all_final
         
         dict_keys = members_list[0].keys()
+        create_path_n_file_if_needed(args.output)
         csv_writer = csv.DictWriter(open(args.output, 'w'), dict_keys, delimiter='|', quotechar='"', quoting=csv.QUOTE_MINIMAL) 
         csv_writer.writeheader() 
         csv_writer.writerows(members_list_final)
@@ -120,9 +121,9 @@ def delete_duplicate_entries(args):
 
 def main(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', required=False, default="adherents_hello_asso.csv",
+    parser.add_argument('-i', '--input', required=False, default="csv/adherents_hello_asso.csv",
                         help="Fichier d'entree helloAsso")    
-    parser.add_argument('-o', '--output', required=False, default="adherents_hello_asso_sans_doublon.csv",
+    parser.add_argument('-o', '--output', required=False, default="csv/adherents_hello_asso_sans_doublon.csv",
                         help="Fichier de sortie")     
     parser.add_argument('-mc', '--m_k_config_file', required=True, 
                         help="Chemin vers le fichier de configuration des clef d'identification d'un membre")   

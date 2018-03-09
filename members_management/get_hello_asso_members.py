@@ -19,7 +19,7 @@ def get_hello_asso_members_url(compaign_id, created_from):
     return hello_asso_url_members
 
 def format_member(member, member_number):
-    m_id, m_name, m_surname = member.get("id"), member.get("last_name"), member.get("first_name")
+    m_id, m_name, m_surname = member.get("id"), member.get("last_name").upper(), member.get("first_name").title()
     m_subs_type, m_subs_date, m_subs_amout = member.get("option_label"), member.get("date"), str(member.get("amount"))
     
     m_card_id = m_id.strip('0')
@@ -31,11 +31,11 @@ def format_member(member, member_number):
     for custom_info in member.get("custom_infos"):
         label = custom_info.get("label")
 
-        if label == "Email contributeur": m_email = custom_info.get("value")                               
+        if label == "Email contributeur": m_email = custom_info.get("value").lower()                               
         elif label == "Numéro de téléphone": m_phone = custom_info.get("value")            
-        elif label == "Adresse": m_address = custom_info.get("value")           
+        elif label == "Adresse": m_address = custom_info.get("value").lower()           
         elif label == "Code postal": m_zip_code = custom_info.get("value")          
-        elif label == "Localité": m_city = custom_info.get("value") 
+        elif label == "Localité": m_city = custom_info.get("value").upper() 
         elif label == "Date de naissance": m_birthday = custom_info.get("value")    
     
     #["id", "Date Adhesion" , "Nom", "Prenom", "email", "Type Adhesion", "Montant Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]                            

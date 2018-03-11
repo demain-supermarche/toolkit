@@ -38,8 +38,8 @@ def format_member(member, member_number):
         elif label == "Localité": m_city = custom_info.get("value").upper() 
         elif label == "Date de naissance": m_birthday = custom_info.get("value")    
     
-    #["id", "Date Adhesion" , "Nom", "Prenom", "email", "Type Adhesion", "Montant Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]                            
-    csv_line =  [m_id, m_subs_date, m_name, m_surname, m_email , m_subs_type, m_subs_amout, m_phone, m_address, m_city, m_zip_code, m_card_url]       
+    #["id", "Date Adhesion" , "Nom", "Prenom", "email", "Date Naissance" "Type Adhesion", "Montant Adhesion", "Telephone", "Adresse", "Ville", "Code Postal", "Url carte adherent"]                            
+    csv_line =  [m_id, m_subs_date, m_name, m_surname, m_birthday, m_email , m_subs_type, m_subs_amout, m_phone, m_address, m_city, m_zip_code, m_card_url]       
     # strip "\n" to prevent undesirable end of line in the csv file
     csv_line = [word.strip() for word in csv_line]
     
@@ -83,7 +83,7 @@ def get_hello_asso_members(compaign_id, hello_asso_user, hello_asso_pass, output
         m_keys = MembersKeys(config)
         
         # Writting the header's line in the csv file
-        csv_line_header =  [m_keys.id, m_keys.subs_date , m_keys.name, m_keys.surname, m_keys.email ,  m_keys.subs_type, 
+        csv_line_header =  [m_keys.id, m_keys.subs_date , m_keys.name, m_keys.surname, m_keys.birthday, m_keys.email ,  m_keys.subs_type, 
                             m_keys.subs_amount, m_keys.phone, m_keys.address, m_keys.city, m_keys.zip, m_keys.subs_card_url]       
         csv_writer.writerow(csv_line_header)    
         
